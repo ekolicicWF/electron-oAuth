@@ -7,7 +7,8 @@ export default function Login() {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Login</Text>
+            <Text style={styles.title}>Login Info</Text>
+
             <Text>username:bob</Text>
             <Text>password:bob</Text>
             
@@ -39,8 +40,7 @@ const styles = StyleSheet.create({
     },
     btnGroup: {
         display: 'flex',
-        backgroundColor: 'red',
-        flexDirection: 'row',
+        flexDirection: 'column',
         marginTop: 10,
         width: '100%'
     },

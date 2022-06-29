@@ -18,8 +18,8 @@ export default function AuthProvider(props: any) {
     const discovery = AuthSession.useAutoDiscovery('https://demo.duendesoftware.com');
     const [request, result, promptAsync] = AuthSession.useAuthRequest(openIdOptions, discovery);
 
-    useEffect(() => console.log('==> request', request), [request]);
-    useEffect(() => console.log('==> result', result), [result]);
+    // useEffect(() => console.log('==> request', request), [request]);
+    // useEffect(() => console.log('==> result', result), [result]);
 
     /**
      * Porque assim que faz o login, ele retorna o `code`, que deve ser trocado 
