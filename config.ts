@@ -1,14 +1,13 @@
 const config = {
     secureKeys: {
-        accessToken: 'ek.accesstoken',
-        userInfo: 'ek.userinfo'
+        accessToken: 'accesstoken',
+        userInfo: 'userinfo'
     },
-    identityServerUrl: 'https://login.alienlab.com.br',
+    identityServerUrl: 'https://demo.duendesoftware.com',
     identityServerOptions: {
-        clientId: 'interactive.public',
-        scopes: ['openid', 'profile', 'email', 'api', 'offline_access'],
-    },
-    identityServerUseProxy: false,
+        clientId: 'interactive.public.short',
+        scopes: ['openid', 'profile', 'email', 'api', 'offline_access']
+    }
 }
 
 export default config;

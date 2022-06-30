@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { useState } from "react";
+import { Platform } from 'react-native';
 import AuthContext from "./AuthContext";
 import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
@@ -7,7 +8,8 @@ import config from "../../config";
 import useSecureStore from "../hooks/useSecureStore";
 import usePersistentState from "../hooks/usePersistentState";
 
-const redirectUri = AuthSession.makeRedirectUri({ useProxy: config.identityServerUseProxy });
+const useProxy = Platform.OS !== 'web';
+const redirectUri = AuthSession.makeRedirectUri({ useProxy: useProxy });
 const openIdOptions = { ...config.identityServerOptions, redirectUri };
 
 WebBrowser.maybeCompleteAuthSession();
@@ -15,20 +17,11 @@ WebBrowser.maybeCompleteAuthSession();
 export default function AuthProvider(props: any) {
     const [token, setToken, clearToken] = useSecureStore<AuthSession.TokenResponse | undefined>(config.secureKeys.accessToken);
     const [userInfo, setUserInfo, clearUserInfo] = usePersistentState<Record<string, any> | undefined>(config.secureKeys.userInfo);
-    const discovery = AuthSession.useAutoDiscovery('https://demo.duendesoftware.com');
+    const discovery = AuthSession.useAutoDiscovery(config.identityServerUrl);
+
     const [request, result, promptAsync] = AuthSession.useAuthRequest(openIdOptions, discovery);
 
-    // useEffect(() => console.log('==> request', request), [request]);
-    // useEffect(() => console.log('==> result', result), [result]);
-
-    /**
-     * Porque assim que faz o login, ele retorna o `code`, que deve ser trocado 
-     * pelo access_token. O método exchangeCodeAsync faz exatamente isso, troca
-     * o code pelo access code 
-     */
     const _handleCodeExchange = (arg: AuthSession.AuthSessionResult) => {
-        // verifico antes para não precisar tratar o arg abaixo (pq senão ele pode 
-        // ficar como undefined) 
         if (arg.type === 'success') {
             //console.log('>>>> promptAsync success ', arg);
             const code = arg.params.code;
@@ -40,7 +33,6 @@ export default function AuthProvider(props: any) {
                 }
             }
 
-            // verifico o discovery para ele não ficar undefined
             if (discovery) {
                 AuthSession.exchangeCodeAsync(param, discovery)
                     .then(r2 => {
@@ -55,11 +47,6 @@ export default function AuthProvider(props: any) {
         }
     }
 
-    /**
-     * Obtém os dados do usuário (perfil)
-     * Temos pelo demo.identityserver as opções:
-     * email, email_verified, family_name, given_name, name, sub, e website
-     */
     const _loadUserInfo = (_t?: string) => {
         if (discovery) {
             AuthSession.fetchUserInfoAsync({ accessToken: _t || token?.accessToken || '' }, discovery)
@@ -73,13 +60,9 @@ export default function AuthProvider(props: any) {
         }
     }
 
-    /**
-     * Efetua o login, e obtém o code. Assim que ele é retornado com sucesso, ele repassa
-     * para o handleCodeExchange que troca o code pelo access_token.
-     */
     const login = () => {
         if (discovery) {
-            promptAsync({ useProxy: config.identityServerUseProxy })
+            promptAsync({ useProxy: useProxy })
                 .then(_handleCodeExchange)
                 .catch(e => console.log('>>>> promptAsync Error: ', e))
         } else {
