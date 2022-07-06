@@ -2,6 +2,7 @@ import { createContext } from 'react';
 import * as AuthSession from 'expo-auth-session';
 
 export type AuthContextData = {
+    elogin: (arg: any) => void;
     token?: AuthSession.TokenResponse;
     userInfo?: Record<string, any>;
     login: () => void;

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 import { useState } from "react";
 import { Platform } from 'react-native';
 import AuthContext from "./AuthContext";
@@ -9,7 +9,8 @@ import useSecureStore from "../hooks/useSecureStore";
 import usePersistentState from "../hooks/usePersistentState";
 
 const useProxy = Platform.OS !== 'web';
-const redirectUri = AuthSession.makeRedirectUri({ useProxy: useProxy });
+// const redirectUri = AuthSession.makeRedirectUri({ useProxy: useProxy });
+const redirectUri = 'https://localhost/callback';
 const openIdOptions = { ...config.identityServerOptions, redirectUri };
 
 WebBrowser.maybeCompleteAuthSession();
@@ -18,10 +19,17 @@ export default function AuthProvider(props: any) {
     const [token, setToken, clearToken] = useSecureStore<AuthSession.TokenResponse | undefined>(config.secureKeys.accessToken);
     const [userInfo, setUserInfo, clearUserInfo] = usePersistentState<Record<string, any> | undefined>(config.secureKeys.userInfo);
     const discovery = AuthSession.useAutoDiscovery(config.identityServerUrl);
-
     const [request, result, promptAsync] = AuthSession.useAuthRequest(openIdOptions, discovery);
 
-    const _handleCodeExchange = (arg: AuthSession.AuthSessionResult) => {
+    const { ipcRenderer } = window.require('electron');
+
+    ipcRenderer.on('authEvent', (event: any, data: any) => {
+        console.log('authEvent data ==>', data)
+        //  promptAsync???        
+    });
+
+    const _handleCodeExchange = (arg: any) => {
+        console.log('_handleCodeExchange', arg);
         if (arg.type === 'success') {
             //console.log('>>>> promptAsync success ', arg);
             const code = arg.params.code;
@@ -60,11 +68,19 @@ export default function AuthProvider(props: any) {
         }
     }
 
+    const elogin = (arg: any) => {
+        if (arg) {
+            _handleCodeExchange(arg);
+        }
+    }
+
     const login = () => {
+
         if (discovery) {
             promptAsync({ useProxy: useProxy })
                 .then(_handleCodeExchange)
                 .catch(e => console.log('>>>> promptAsync Error: ', e))
+
         } else {
             console.log('>>>> login error - discovery is null');
         }
@@ -84,7 +100,7 @@ export default function AuthProvider(props: any) {
     }
 
     return (
-        <AuthContext.Provider value={{ token, userInfo, login, logout, teste: _loadUserInfo }}>
+        <AuthContext.Provider value={{ token, userInfo, login, logout, teste: _loadUserInfo, elogin }}>
             {props.children}
         </AuthContext.Provider>
     );

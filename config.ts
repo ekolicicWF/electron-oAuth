@@ -6,7 +6,13 @@ const config = {
     identityServerUrl: 'https://demo.duendesoftware.com',
     identityServerOptions: {
         clientId: 'interactive.public.short',
-        scopes: ['openid', 'profile', 'email', 'api', 'offline_access']
+        silentRenew: true,
+        responseType: 'code',
+        redirectUrl: `https://localhost/callback`,
+        postLogoutRedirectUri: `https://localhost/callback`,
+        scopes: ['openid', 'profile', 'email', 'api', 'offline_access'],
+        useRefreshToken: true,
+        renewTimeBeforeTokenExpiresInSeconds: 30,
     }
 }
 
